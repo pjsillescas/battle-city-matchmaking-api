@@ -10,10 +10,11 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
 @Service
-public class PlayerDAOImpl {
+public class PlayerDAOImpl implements PlayerDAO {
 	@PersistenceContext
 	private EntityManager em;
 
+	@Override
 	public Optional<Player> findPlayersByName(String userName) {
 		var cb = em.getCriteriaBuilder();
 		var cq = cb.createQuery(Player.class);

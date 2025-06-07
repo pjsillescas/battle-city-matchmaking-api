@@ -9,4 +9,10 @@ public interface GameDAO {
 	void createGameWithCreator(Player host, String gameName);
 
 	List<GameDTO> getGameList();
+
+	GameDTO addGame(Player host);
+
+	GameDTO joinGame(Player guest, Long gameId);
+
+	GameDTO leaveGame(Player leavingPlayer, Long gameId);
 }

@@ -1,5 +1,6 @@
 package com.pdrosoft.matchmaking.security;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -7,24 +8,34 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import com.pdrosoft.matchmaking.service.MatchmakingUserDetailsService;
+
+import lombok.NonNull;
 
 @Configuration
 public class SecurityConfig {
 	private final JwtAuthFilter jwtAuthFilter;
 
-	public SecurityConfig(JwtAuthFilter jwtAuthFilter) {
+	@NonNull
+	private final MatchmakingUserDetailsService userDetailsService;
+
+	public SecurityConfig(JwtAuthFilter jwtAuthFilter, @Autowired MatchmakingUserDetailsService userDetailsService) {
 		this.jwtAuthFilter = jwtAuthFilter;
+		this.userDetailsService = userDetailsService;
 	}
 
 	@Bean
 	public UserDetailsService userDetailsService() {
-		return new InMemoryUserDetailsManager(User.withUsername("testuser").password("{noop}password") // {noop} = no encoding
+		/*
+		return new InMemoryUserDetailsManager(User.withUsername("testuser").password("{noop}password")
+		// {noop} = no encoding
 				.roles("USER").build());
+		*/
+		return userDetailsService;
 	}
 
 	@Bean
