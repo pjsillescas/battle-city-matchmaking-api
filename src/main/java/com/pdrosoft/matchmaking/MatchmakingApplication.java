@@ -10,6 +10,7 @@ import org.springframework.context.annotation.ComponentScan;
 	    "com.pdrosoft.matchmaking.service",
 	    "com.pdrosoft.matchmaking.dao",
 	    "com.pdrosoft.matchmaking.security",
+	    "com.pdrosoft.matchmaking.exception",
 	})
 public class MatchmakingApplication {
 

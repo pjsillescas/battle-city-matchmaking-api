@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.pdrosoft.matchmaking.dto.GameDTO;
 import com.pdrosoft.matchmaking.dto.PlayerDTO;
 import com.pdrosoft.matchmaking.exception.MatchmakingValidationException;
+import com.pdrosoft.matchmaking.exception.NotFoundException;
 import com.pdrosoft.matchmaking.model.Game;
 import com.pdrosoft.matchmaking.model.Player;
 import com.pdrosoft.matchmaking.repository.GameRepository;
@@ -84,7 +85,7 @@ public class GameDAOImpl implements GameDAO {
 		var gameOpt = gameRepository.findById(gameId);
 
 		if (gameOpt.isEmpty()) {
-			throw new MatchmakingValidationException("Game %d does not exist".formatted(gameId));
+			throw new NotFoundException("Game %d does not exist".formatted(gameId));
 		}
 
 		return gameOpt.get();
