@@ -1,7 +1,5 @@
 package com.pdrosoft.matchmaking.controller;
 
-import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -12,7 +10,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.pdrosoft.matchmaking.dto.LoginResultDTO;
 import com.pdrosoft.matchmaking.dto.PlayerDTO;
+import com.pdrosoft.matchmaking.dto.UserAuthDTO;
 import com.pdrosoft.matchmaking.security.JwtUtil;
 import com.pdrosoft.matchmaking.service.MatchmakingService;
 
@@ -39,18 +39,18 @@ public class AuthController {
 	}
 
 	@PostMapping("/login")
-	public Map<String, String> login(@RequestBody Map<String, String> request) {
-		Authentication auth = authManager.authenticate(
-				new UsernamePasswordAuthenticationToken(request.get("username"), request.get("password")));
+	public LoginResultDTO login(@RequestBody UserAuthDTO request) {
+		Authentication auth = authManager
+				.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
 
 		String token = jwtUtil.generateToken(auth.getName());
-		return Map.of("token", token);
+		return LoginResultDTO.builder().token(token).build();
 	}
 
 	@PutMapping("/signup")
-	public PlayerDTO signup(@RequestBody Map<String, String> request) {
+	public PlayerDTO signup(@RequestBody UserAuthDTO request) {
 
-		return matchmakingService.addPlayer(request.get("username"), request.get("password"));
+		return matchmakingService.addPlayer(request.getUsername(), request.getPassword());
 	}
 
 }

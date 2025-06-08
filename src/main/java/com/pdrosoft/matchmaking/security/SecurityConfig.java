@@ -30,11 +30,6 @@ public class SecurityConfig {
 
 	@Bean
 	public UserDetailsService userDetailsService() {
-		/*
-		return new InMemoryUserDetailsManager(User.withUsername("testuser").password("{noop}password")
-		// {noop} = no encoding
-				.roles("USER").build());
-		*/
 		return userDetailsService;
 	}
 

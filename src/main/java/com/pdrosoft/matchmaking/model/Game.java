@@ -25,7 +25,7 @@ public class Game {
 
 	@Column(nullable = false)
 	private String name;
-	
+
 	@Column(name = "creation_date", nullable = false, unique = true)
 	@JdbcType(TimestampJdbcType.class)
 	private Instant creationDate;
@@ -33,6 +33,7 @@ public class Game {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "host", nullable = false)
 	private Player host;
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "guest")
 	private Player guest;
