@@ -4,6 +4,8 @@ import java.time.Instant;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -25,6 +27,18 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ErrorResultDTO> handleBadRequest(MatchmakingValidationException ex) {
 		var body = getErrorObject(ex.getMessage());
 		return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+	}
+
+	@ExceptionHandler(UsernameNotFoundException.class)
+	public ResponseEntity<ErrorResultDTO> handleBadRequest(UsernameNotFoundException ex) {
+		var body = getErrorObject(ex.getMessage());
+		return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
+	}
+
+	@ExceptionHandler(BadCredentialsException.class)
+	public ResponseEntity<ErrorResultDTO> handleBadRequest(BadCredentialsException ex) {
+		var body = getErrorObject(ex.getMessage());
+		return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
 	}
 
 	@ExceptionHandler(Exception.class)
