@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -29,6 +30,12 @@ public class GlobalExceptionHandler {
 		return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
 	}
 
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+	public ResponseEntity<ErrorResultDTO> handleBadRequest(MethodArgumentNotValidException ex) {
+		var body = getErrorObject(ex.getMessage());
+		return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+	}
+
 	@ExceptionHandler(UsernameNotFoundException.class)
 	public ResponseEntity<ErrorResultDTO> handleBadRequest(UsernameNotFoundException ex) {
 		var body = getErrorObject(ex.getMessage());
@@ -37,6 +44,12 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(BadCredentialsException.class)
 	public ResponseEntity<ErrorResultDTO> handleBadRequest(BadCredentialsException ex) {
+		var body = getErrorObject(ex.getMessage());
+		return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
+	}
+
+	@ExceptionHandler(PlayerExistsException.class)
+	public ResponseEntity<ErrorResultDTO> handleBadRequest(PlayerExistsException ex) {
 		var body = getErrorObject(ex.getMessage());
 		return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
 	}

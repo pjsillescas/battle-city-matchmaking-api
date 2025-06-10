@@ -74,7 +74,7 @@ public class AuthControllerTest {
 	}
 
 	@ParameterizedTest
-	@CsvSource(value = { "testuser4,password1", "testuser1,password4", ",", "user,", ",password" })
+	@CsvSource(value = { "testuser4,password1", "testuser1,password4",/* ",", "user,", ",password" */ })
 	void testLoginPlayerNotFound(String user, String password) throws Exception {
 		var authData = UserAuthDTO.builder().username(user).password(password).build();
 
@@ -86,6 +86,22 @@ public class AuthControllerTest {
 
 		var errorDTO = getObjectReader().readValue(result.getResponse().getContentAsString(), ErrorResultDTO.class);
 		assertThat(errorDTO).isNotNull().extracting(ErrorResultDTO::getMessage).isEqualTo("Bad credentials");
+	}
+
+	@ParameterizedTest
+	@CsvSource(value = { "user10,,password cannot be empty", ",pass,username cannot be empty" })
+	void testLoginWithMissingData(String username, String password, String message) throws Exception {
+		var authData = UserAuthDTO.builder().username(username).password(password).build();
+		var json = getObjectWriter().writeValueAsString(authData);
+		var result = mockMvc.perform(post("/api/auth/login")//
+				.contentType(MediaType.APPLICATION_JSON)//
+				.content(json))//
+				.andExpect(status().isBadRequest()).andReturn();
+
+		var errorDTO = getObjectReader().readValue(result.getResponse().getContentAsString(), ErrorResultDTO.class);
+		assertThat(errorDTO).isNotNull();
+		assertThat(errorDTO.getMessage()).isEqualTo(message);
+
 	}
 
 	@Test
@@ -102,6 +118,38 @@ public class AuthControllerTest {
 		assertThat(playerDTO).isNotNull();
 		assertThat(playerDTO.getId()).isEqualTo(4);
 		assertThat(playerDTO.getUsername()).isEqualTo("user5");
+
+	}
+
+	@Test
+	void testSignupExistingUser() throws Exception {
+		var authData = UserAuthDTO.builder().username("testuser1").password("pass6").build();
+
+		var json = getObjectWriter().writeValueAsString(authData);
+		var result = mockMvc.perform(put("/api/auth/signup")//
+				.contentType(MediaType.APPLICATION_JSON)//
+				.content(json))//
+				.andExpect(status().isForbidden()).andReturn();
+
+		var errorDTO = getObjectReader().readValue(result.getResponse().getContentAsString(), ErrorResultDTO.class);
+		assertThat(errorDTO).isNotNull();
+		assertThat(errorDTO.getMessage()).isEqualTo("player already exists 'testuser1'");
+
+	}
+
+	@ParameterizedTest
+	@CsvSource(value = { "user10,,password cannot be empty", ",pass,username cannot be empty" })
+	void testSignupWithMissingData(String username, String password, String message) throws Exception {
+		var authData = UserAuthDTO.builder().username(username).password(password).build();
+		var json = getObjectWriter().writeValueAsString(authData);
+		var result = mockMvc.perform(put("/api/auth/signup")//
+				.contentType(MediaType.APPLICATION_JSON)//
+				.content(json))//
+				.andExpect(status().isBadRequest()).andReturn();
+
+		var errorDTO = getObjectReader().readValue(result.getResponse().getContentAsString(), ErrorResultDTO.class);
+		assertThat(errorDTO).isNotNull();
+		assertThat(errorDTO.getMessage()).isEqualTo(message);
 
 	}
 

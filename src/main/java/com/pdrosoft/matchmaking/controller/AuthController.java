@@ -1,9 +1,13 @@
 package com.pdrosoft.matchmaking.controller;
 
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.validation.Errors;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,9 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.pdrosoft.matchmaking.dto.LoginResultDTO;
 import com.pdrosoft.matchmaking.dto.PlayerDTO;
 import com.pdrosoft.matchmaking.dto.UserAuthDTO;
+import com.pdrosoft.matchmaking.exception.MatchmakingValidationException;
 import com.pdrosoft.matchmaking.security.JwtUtil;
 import com.pdrosoft.matchmaking.service.MatchmakingService;
 
+import jakarta.validation.Valid;
 import lombok.NonNull;
 
 @RestController
@@ -39,7 +45,11 @@ public class AuthController {
 	}
 
 	@PostMapping("/login")
-	public LoginResultDTO login(@RequestBody UserAuthDTO request) {
+	public LoginResultDTO login(@Valid @RequestBody UserAuthDTO request, Errors errors) {
+		if (errors.hasErrors()) {
+			throw new MatchmakingValidationException(errors.getFieldErrors().stream().map(FieldError::getDefaultMessage)//
+					.collect(Collectors.joining(", ")));
+		}
 		Authentication auth = authManager
 				.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
 
@@ -48,7 +58,12 @@ public class AuthController {
 	}
 
 	@PutMapping("/signup")
-	public PlayerDTO signup(@RequestBody UserAuthDTO request) {
+	public PlayerDTO signup(@Valid @RequestBody UserAuthDTO request, Errors errors) {
+
+		if (errors.hasErrors()) {
+			throw new MatchmakingValidationException(errors.getFieldErrors().stream().map(FieldError::getDefaultMessage)//
+					.collect(Collectors.joining(", ")));
+		}
 
 		return matchmakingService.addPlayer(request.getUsername(), request.getPassword());
 	}
