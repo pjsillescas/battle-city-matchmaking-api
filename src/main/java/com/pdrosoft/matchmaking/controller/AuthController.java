@@ -4,6 +4,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.Errors;
@@ -53,8 +54,12 @@ public class AuthController {
 		Authentication auth = authManager
 				.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
 
-		String token = jwtUtil.generateToken(auth.getName());
-		return LoginResultDTO.builder().token(token).build();
+		if (auth.isAuthenticated()) {
+			String token = jwtUtil.generateToken(auth.getName());
+			return LoginResultDTO.builder().token(token).build();
+		} else {
+			throw new BadCredentialsException("Invalid credentials");
+		}
 	}
 
 	@PutMapping("/signup")

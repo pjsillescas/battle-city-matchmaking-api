@@ -1,8 +1,8 @@
 
 INSERT INTO player(id, username, password) VALUES
-(1, 'testuser1', 'password1'),
-(2, 'testuser2', 'password2'),
-(3, 'testuser3', 'password3')
+(1, 'testuser1', '$2a$10$eP3FFlxW0RYWE9lO2Lb/ZeD8aswR.g07IBxTmAabZJYP9vOi/6a.e'), -- password1
+(2, 'testuser2', '$2a$10$4RPXI3HNETyZ04X4ko.KcuaoG6vSbifrTgWSzg7Yf7vFf9kipwn..'), -- password2
+(3, 'testuser3', '$2a$10$Hv0G6KNRtt7EO.pnPNxdr.kpxoaDEH4JJxeeH1P9pSKlylI4HhN1e') -- password3
 ;
 
 INSERT INTO game(id, name, creation_date, host, guest) VALUES

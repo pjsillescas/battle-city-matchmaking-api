@@ -109,6 +109,16 @@ public class AuthControllerTest {
 		var authData = UserAuthDTO.builder().username("user5").password("pass5").build();
 
 		var json = getObjectWriter().writeValueAsString(authData);
+		
+		var resultLogin1 = mockMvc.perform(post("/api/auth/login")//
+				.contentType(MediaType.APPLICATION_JSON)//
+				.content(json))//
+				.andExpect(status().isForbidden()).andReturn();
+		var errorDTO = getObjectReader().readValue(resultLogin1.getResponse().getContentAsString(), ErrorResultDTO.class);
+		assertThat(errorDTO).isNotNull();
+		assertThat(errorDTO.getMessage()).isEqualTo("Bad credentials");
+
+		
 		var result = mockMvc.perform(put("/api/auth/signup")//
 				.contentType(MediaType.APPLICATION_JSON)//
 				.content(json))//
@@ -119,6 +129,13 @@ public class AuthControllerTest {
 		assertThat(playerDTO.getId()).isEqualTo(4);
 		assertThat(playerDTO.getUsername()).isEqualTo("user5");
 
+		var resultLogin = mockMvc.perform(post("/api/auth/login")//
+				.contentType(MediaType.APPLICATION_JSON)//
+				.content(json))//
+				.andExpect(status().isOk()).andReturn();
+		var authDTO = getObjectReader().readValue(resultLogin.getResponse().getContentAsString(), LoginResultDTO.class);
+		assertThat(authDTO).isNotNull().extracting(LoginResultDTO::getToken).isNotNull();
+		
 	}
 
 	@Test

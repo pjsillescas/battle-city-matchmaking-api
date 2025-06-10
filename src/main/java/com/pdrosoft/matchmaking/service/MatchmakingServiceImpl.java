@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,12 +27,15 @@ public class MatchmakingServiceImpl implements MatchmakingService {
 	private final PlayerRepository playerRepository;
 	@NonNull
 	private final PlayerDAO playerDao;
+	@NonNull
+	private final PasswordEncoder passwordEncoder;
 
 	public MatchmakingServiceImpl(@Autowired GameDAO gameDao, @Autowired PlayerRepository playerRepository,
-			PlayerDAO playerDao) {
+			PlayerDAO playerDao, PasswordEncoder passwordEncoder) {
 		this.gameDao = gameDao;
 		this.playerRepository = playerRepository;
 		this.playerDao = playerDao;
+		this.passwordEncoder = passwordEncoder;
 	}
 
 	@Override
@@ -56,7 +60,7 @@ public class MatchmakingServiceImpl implements MatchmakingService {
 
 		var player = new Player();
 		player.setUserName(name);
-		player.setPassword(password);
+		player.setPassword(passwordEncoder.encode(password));
 
 		return Optional.ofNullable(playerRepository.save(player)).map(this::toPlayerDTO).orElseThrow();
 	}
