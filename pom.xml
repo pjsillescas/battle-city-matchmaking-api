@@ -143,7 +143,7 @@
 									<limits>
 										<limit>
 											<counter>INSTRUCTION</counter>
-											<minimum>60.0%</minimum>
+											<minimum>80.0%</minimum>
 										</limit>
 									</limits>
 								</rule>
@@ -162,7 +162,7 @@
 									<limits>
 										<limit>
 											<counter>INSTRUCTION</counter>
-											<minimum>60.0%</minimum>
+											<minimum>80.0%</minimum>
 										</limit>
 									</limits>
 								</rule>
