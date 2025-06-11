@@ -3,8 +3,11 @@ package com.pdrosoft.matchmaking.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -12,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
@@ -26,7 +31,8 @@ import com.pdrosoft.matchmaking.dto.UserAuthDTO;
 
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Sql(scripts = "/test-data.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
+@Sql(scripts = "classpath:test-data.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
+@DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @AutoConfigureMockMvc
 public class GameControllerTest {
 
@@ -79,132 +85,134 @@ public class GameControllerTest {
 
 	@Test
 	void testGameListWithNoToken() throws Exception {
-		var token = "";
-		
 		mockMvc.perform(get("/api/game"))
 				.andExpect(status().isForbidden());
 	}
 
 	@Test
-	void testGameListWithNoToken() throws Exception {
-		var token = "";
+	void testGameListWithInvalidToken() throws Exception {
+		var token = "invalid.token";
 		
-		mockMvc.perform(get("/api/game"))//.header("Authorization", "Bearer %s".formatted(token)))//
+		mockMvc.perform(get("/api/game").header("Authorization", "Bearer %s".formatted(token)))//
 				.andExpect(status().isForbidden());
 	}
 
+	@Test
+	void testCreateGameWithInvalidToken() throws Exception {
+		var token = "invalid.token";
+		
+		mockMvc.perform(put("/api/game").header("Authorization", "Bearer %s".formatted(token)))//
+				.andExpect(status().isForbidden());
+	}
+
+	@Test
+	void testCreateJoinLeaveGuestFirstGameSuccess() throws Exception {
+		var tokenHost = getToken("testuser1", "password1");
+		var tokenGuest = getToken("testuser2", "password2");
+		
+		
+		var result = mockMvc.perform(put("/api/game") //
+				.header("Authorization", "Bearer %s".formatted(tokenHost)))//
+				.andExpect(status().isOk()).andReturn();
+
+		var game = getObjectMapper().readValue(result.getResponse().getContentAsString(), GameDTO.class);
+		var newGameId = game.getId();
+		assertThat(game.getCreationDate()).isBetween(Instant.now().minus(Duration.ofSeconds(2)), Instant.now().plus(Duration.ofSeconds(2)));
+		assertThat(game.getName()).isEqualTo("testuser1's game");
+		assertThat(game.getHost().getUsername()).isEqualTo("testuser1");
+		assertThat(game.getGuest()).isNull();
+
+		var resultJoin = mockMvc.perform(post("/api/game/{gameId}/join", Integer.toString(newGameId)) //
+				.header("Authorization", "Bearer %s".formatted(tokenGuest)))//
+				.andExpect(status().isOk()).andReturn();
+
+		var gameJoined = getObjectMapper().readValue(resultJoin.getResponse().getContentAsString(), GameDTO.class);
+		assertThat(gameJoined.getId()).isEqualTo(game.getId());
+		assertThat(gameJoined.getCreationDate()).isNotNull();
+		assertThat(gameJoined.getName()).isEqualTo(game.getName());
+		assertThat(gameJoined.getHost().getUsername()).isEqualTo("testuser1");
+		assertThat(gameJoined.getGuest().getUsername()).isEqualTo("testuser2");
+		
+		var resultLeaveGuest = mockMvc.perform(post("/api/game/{gameId}/leave", Integer.toString(newGameId)) //
+				.header("Authorization", "Bearer %s".formatted(tokenGuest)))//
+				.andExpect(status().isOk()).andReturn();
+		
+		var gameLeft = getObjectMapper().readValue(resultLeaveGuest.getResponse().getContentAsString(), GameDTO.class);
+		assertThat(gameLeft.getId()).isEqualTo(newGameId);
+		assertThat(gameLeft.getCreationDate()).isNotNull();
+		assertThat(gameLeft.getName()).isEqualTo("testuser1's game");
+		assertThat(gameLeft.getHost().getUsername()).isEqualTo("testuser1");
+		assertThat(gameLeft.getGuest()).isNull();
+		
+		var resultLeaveHost = mockMvc.perform(post("/api/game/{gameId}/leave", Integer.toString(newGameId)) //
+				.header("Authorization", "Bearer %s".formatted(tokenHost)))//
+				.andExpect(status().isOk()).andReturn();
+		
+		assertThat(resultLeaveHost.getResponse().getContentAsString()).isNullOrEmpty();
+		
+	}
+
+	@Test
+	void testCreateJoinLeaveHostFirstGameSuccess() throws Exception {
+		var tokenHost = getToken("testuser1", "password1");
+		var tokenGuest = getToken("testuser2", "password2");
+		
+		
+		var result = mockMvc.perform(put("/api/game") //
+				.header("Authorization", "Bearer %s".formatted(tokenHost)))//
+				.andExpect(status().isOk()).andReturn();
+
+		var game = getObjectMapper().readValue(result.getResponse().getContentAsString(), GameDTO.class);
+		var newGameId = game.getId();
+		assertThat(game.getCreationDate()).isBetween(Instant.now().minus(Duration.ofSeconds(2)), Instant.now().plus(Duration.ofSeconds(2)));
+		assertThat(game.getName()).isEqualTo("testuser1's game");
+		assertThat(game.getHost().getUsername()).isEqualTo("testuser1");
+		assertThat(game.getGuest()).isNull();
+
+		var resultJoin = mockMvc.perform(post("/api/game/{gameId}/join", Integer.toString(newGameId)) //
+				.header("Authorization", "Bearer %s".formatted(tokenGuest)))//
+				.andExpect(status().isOk()).andReturn();
+
+		var gameJoined = getObjectMapper().readValue(resultJoin.getResponse().getContentAsString(), GameDTO.class);
+		assertThat(gameJoined.getId()).isEqualTo(game.getId());
+		assertThat(gameJoined.getCreationDate()).isNotNull();
+		assertThat(gameJoined.getName()).isEqualTo(game.getName());
+		assertThat(gameJoined.getHost().getUsername()).isEqualTo("testuser1");
+		assertThat(gameJoined.getGuest().getUsername()).isEqualTo("testuser2");
+		
+		var resultLeaveHost = mockMvc.perform(post("/api/game/{gameId}/leave", Integer.toString(newGameId)) //
+				.header("Authorization", "Bearer %s".formatted(tokenHost)))//
+				.andExpect(status().isOk()).andReturn();
+		
+		assertThat(resultLeaveHost.getResponse().getContentAsString()).isNullOrEmpty();
+		
+		var resultLeaveGuest = mockMvc.perform(post("/api/game/{gameId}/leave", Integer.toString(newGameId)) //
+				.header("Authorization", "Bearer %s".formatted(tokenGuest)))//
+				.andExpect(status().isOk()).andReturn();
+		
+		assertThat(resultLeaveGuest.getResponse().getContentAsString()).isNullOrEmpty();
+	}
 	
-	/*
 	@Test
-	void testLoginSuccess() throws Exception {
-		var authData = UserAuthDTO.builder().username("testuser1").password("password1").build();
-
-		var json = getObjectWriter().writeValueAsString(authData);
-		var result = mockMvc.perform(post("/api/auth/login")//
-				.contentType(MediaType.APPLICATION_JSON)//
-				.content(json))//
+	void testLeaveInexistentGame() throws Exception {
+		var token = getToken("testuser1", "password1");
+		var inexistentGameId = 1200;
+		
+		var resultLeaveGuest = mockMvc.perform(post("/api/game/{gameId}/leave", Integer.toString(inexistentGameId)) //
+				.header("Authorization", "Bearer %s".formatted(token)))//
 				.andExpect(status().isOk()).andReturn();
-
-		var authDTO = getObjectReader().readValue(result.getResponse().getContentAsString(), LoginResultDTO.class);
-		assertThat(authDTO).isNotNull().extracting(LoginResultDTO::getToken).isNotNull();
+		
+		assertThat(resultLeaveGuest.getResponse().getContentAsString()).isNullOrEmpty();
 	}
-
-	@ParameterizedTest
-	@CsvSource(value = { "testuser4,password1", "testuser1,password4" })
-	void testLoginPlayerNotFound(String user, String password) throws Exception {
-		var authData = UserAuthDTO.builder().username(user).password(password).build();
-
-		var json = getObjectWriter().writeValueAsString(authData);
-		var result = mockMvc.perform(post("/api/auth/login")//
-				.contentType(MediaType.APPLICATION_JSON)//
-				.content(json))//
-				.andExpect(status().isForbidden()).andReturn();
-
-		var errorDTO = getObjectReader().readValue(result.getResponse().getContentAsString(), ErrorResultDTO.class);
-		assertThat(errorDTO).isNotNull().extracting(ErrorResultDTO::getMessage).isEqualTo("Bad credentials");
-	}
-
-	@ParameterizedTest
-	@CsvSource(value = { "user10,,password cannot be empty", ",pass,username cannot be empty" })
-	void testLoginWithMissingData(String username, String password, String message) throws Exception {
-		var authData = UserAuthDTO.builder().username(username).password(password).build();
-		var json = getObjectWriter().writeValueAsString(authData);
-		var result = mockMvc.perform(post("/api/auth/login")//
-				.contentType(MediaType.APPLICATION_JSON)//
-				.content(json))//
-				.andExpect(status().isBadRequest()).andReturn();
-
-		var errorDTO = getObjectReader().readValue(result.getResponse().getContentAsString(), ErrorResultDTO.class);
-		assertThat(errorDTO).isNotNull();
-		assertThat(errorDTO.getMessage()).isEqualTo(message);
-
-	}
-
+	
 	@Test
-	void testSignupSuccess() throws Exception {
-		var authData = UserAuthDTO.builder().username("user5").password("pass5").build();
-
-		var json = getObjectWriter().writeValueAsString(authData);
+	void testJoinInexistentGame() throws Exception {
+		var token = getToken("testuser1", "password1");
+		var inexistentGameId = 1200;
 		
-		var resultLogin1 = mockMvc.perform(post("/api/auth/login")//
-				.contentType(MediaType.APPLICATION_JSON)//
-				.content(json))//
-				.andExpect(status().isForbidden()).andReturn();
-		var errorDTO = getObjectReader().readValue(resultLogin1.getResponse().getContentAsString(), ErrorResultDTO.class);
-		assertThat(errorDTO).isNotNull();
-		assertThat(errorDTO.getMessage()).isEqualTo("Bad credentials");
-
-		
-		var result = mockMvc.perform(put("/api/auth/signup")//
-				.contentType(MediaType.APPLICATION_JSON)//
-				.content(json))//
-				.andExpect(status().isOk()).andReturn();
-
-		var playerDTO = getObjectReader().readValue(result.getResponse().getContentAsString(), PlayerDTO.class);
-		assertThat(playerDTO).isNotNull();
-		assertThat(playerDTO.getId()).isEqualTo(4);
-		assertThat(playerDTO.getUsername()).isEqualTo("user5");
-
-		var resultLogin = mockMvc.perform(post("/api/auth/login")//
-				.contentType(MediaType.APPLICATION_JSON)//
-				.content(json))//
-				.andExpect(status().isOk()).andReturn();
-		var authDTO = getObjectReader().readValue(resultLogin.getResponse().getContentAsString(), LoginResultDTO.class);
-		assertThat(authDTO).isNotNull().extracting(LoginResultDTO::getToken).isNotNull();
-		
+		mockMvc.perform(post("/api/game/{gameId}/join", Integer.toString(inexistentGameId)) //
+				.header("Authorization", "Bearer %s".formatted(token)))//
+				.andExpect(status().isNotFound());
 	}
-
-	@Test
-	void testSignupExistingUser() throws Exception {
-		var authData = UserAuthDTO.builder().username("testuser1").password("pass6").build();
-
-		var json = getObjectWriter().writeValueAsString(authData);
-		var result = mockMvc.perform(put("/api/auth/signup")//
-				.contentType(MediaType.APPLICATION_JSON)//
-				.content(json))//
-				.andExpect(status().isForbidden()).andReturn();
-
-		var errorDTO = getObjectReader().readValue(result.getResponse().getContentAsString(), ErrorResultDTO.class);
-		assertThat(errorDTO).isNotNull();
-		assertThat(errorDTO.getMessage()).isEqualTo("player already exists 'testuser1'");
-
-	}
-
-	@ParameterizedTest
-	@CsvSource(value = { "user10,,password cannot be empty", ",pass,username cannot be empty" })
-	void testSignupWithMissingData(String username, String password, String message) throws Exception {
-		var authData = UserAuthDTO.builder().username(username).password(password).build();
-		var json = getObjectWriter().writeValueAsString(authData);
-		var result = mockMvc.perform(put("/api/auth/signup")//
-				.contentType(MediaType.APPLICATION_JSON)//
-				.content(json))//
-				.andExpect(status().isBadRequest()).andReturn();
-
-		var errorDTO = getObjectReader().readValue(result.getResponse().getContentAsString(), ErrorResultDTO.class);
-		assertThat(errorDTO).isNotNull();
-		assertThat(errorDTO.getMessage()).isEqualTo(message);
-
-	}
-	*/
 
 }

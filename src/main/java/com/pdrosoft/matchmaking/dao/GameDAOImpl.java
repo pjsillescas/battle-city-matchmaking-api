@@ -43,14 +43,14 @@ public class GameDAOImpl implements GameDAO {
 	}
 
 	private PlayerDTO toPlayerDTO(Player player) {
-		return Optional.ofNullable(player).map(p -> PlayerDTO.builder() //
+		return Optional.ofNullable(player).map(_ -> PlayerDTO.builder() //
 				.id(player.getId()) //
 				.username(player.getUserName()) //
 				.build()).orElse(null);
 	}
 
 	private GameDTO toGameDTO(Game game) {
-		return Optional.ofNullable(game).map(g -> GameDTO.builder() //
+		return Optional.ofNullable(game).map(_ -> GameDTO.builder() //
 				.id(game.getId()) //
 				.creationDate(game.getCreationDate()) //
 				.name(game.getName()) //
@@ -81,20 +81,15 @@ public class GameDAOImpl implements GameDAO {
 		return Optional.of(gameRepository.save(game)).map(this::toGameDTO).orElseThrow();
 	}
 
-	private Game loadGame(Long gameId) {
-		var gameOpt = gameRepository.findById(gameId);
-
-		if (gameOpt.isEmpty()) {
-			throw new NotFoundException("Game %d does not exist".formatted(gameId));
-		}
-
-		return gameOpt.get();
+	private Optional<Game> loadGame(Long gameId) {
+		return gameRepository.findById(gameId);
 	}
 
 	@Override
 	@Transactional(rollbackFor = Exception.class)
 	public GameDTO joinGame(Player guest, Long gameId) {
-		var game = loadGame(gameId);
+		var game = loadGame(gameId)
+				.orElseThrow(() -> new NotFoundException("Game %d does not exist".formatted(gameId)));
 		if (game.getHost().equals(guest)) {
 			throw new MatchmakingValidationException("In a game, the host and the guest cannot be the same user");
 		}
@@ -108,21 +103,22 @@ public class GameDAOImpl implements GameDAO {
 	@Override
 	@Transactional(rollbackFor = Exception.class)
 	public GameDTO leaveGame(Player player, Long gameId) {
-		var game = loadGame(gameId);
+		return loadGame(gameId).map(game -> {
 
-		if (player.equals(game.getHost())) {
-			gameRepository.delete(game);
-			return null;
-		}
+			if (player.equals(game.getHost())) {
+				gameRepository.delete(game);
+				return null;
+			}
 
-		if (player.equals(game.getGuest())) {
-			game.setGuest(null);
-			return Optional.ofNullable(gameRepository.save(game)).map(this::toGameDTO) //
-					.orElseThrow(() -> new MatchmakingValidationException("Error saving game"));
+			if (player.equals(game.getGuest())) {
+				game.setGuest(null);
+				return Optional.ofNullable(gameRepository.save(game)).map(this::toGameDTO) //
+						.orElseThrow(() -> new MatchmakingValidationException("Error saving game"));
 
-		}
+			}
 
-		throw new MatchmakingValidationException(
-				"Player %d is not a member of the game %s".formatted(player.getUserName(), game.getName()));
+			throw new MatchmakingValidationException(
+					"Player %d is not a member of the game %s".formatted(player.getUserName(), game.getName()));
+		}).orElse(null);
 	}
 }
