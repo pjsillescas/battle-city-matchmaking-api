@@ -15,9 +15,7 @@ import com.pdrosoft.matchmaking.dto.GameDTO;
 import com.pdrosoft.matchmaking.security.payload.MatchmakingUserDetails;
 import com.pdrosoft.matchmaking.service.MatchmakingService;
 
-import lombok.Builder;
 import lombok.NonNull;
-import lombok.Value;
 
 @RestController
 @RequestMapping("/api")
@@ -30,17 +28,6 @@ public class GameApiController {
 		this.matchmakingService = matchmakingService;
 	}
 
-	@Value
-	@Builder
-	private static class Result {
-		public String message;
-	}
-	
-	@GetMapping(path = "/test", produces = { "application/json" })
-	public Result testController() {
-		return Result.builder().message("hello world").build();
-	}
-	
 	@GetMapping(path = "/game", produces = { "application/json" })
 	public List<GameDTO> getGames() {
 		return matchmakingService.getGameList();

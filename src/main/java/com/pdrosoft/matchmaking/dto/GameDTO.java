@@ -2,11 +2,15 @@ package com.pdrosoft.matchmaking.dto;
 
 import java.time.Instant;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Value;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Value
+@Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class GameDTO {
 	private Integer id;
 
