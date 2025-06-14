@@ -26,6 +26,9 @@ public class Game {
 	@Column(nullable = false)
 	private String name;
 
+	@Column(name = "join_code", nullable = false)
+	private String joinCode;
+
 	@Column(name = "creation_date", nullable = false, unique = true)
 	@JdbcType(TimestampJdbcType.class)
 	private Instant creationDate;

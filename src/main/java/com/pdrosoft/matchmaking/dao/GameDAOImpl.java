@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.pdrosoft.matchmaking.dto.GameDTO;
+import com.pdrosoft.matchmaking.dto.GameExtendedDTO;
+import com.pdrosoft.matchmaking.dto.GameInputDTO;
 import com.pdrosoft.matchmaking.dto.PlayerDTO;
 import com.pdrosoft.matchmaking.exception.MatchmakingValidationException;
 import com.pdrosoft.matchmaking.exception.NotFoundException;
@@ -59,6 +61,17 @@ public class GameDAOImpl implements GameDAO {
 				.build()).orElse(null);
 	}
 
+	private GameExtendedDTO toGameExtendedDTO(Game game) {
+		return Optional.ofNullable(game).map(_ -> GameExtendedDTO.builder() //
+				.id(game.getId()) //
+				.creationDate(game.getCreationDate()) //
+				.name(game.getName()) //
+				.joinCode(game.getJoinCode()) //
+				.host(toPlayerDTO(game.getHost())) //
+				.guest(toPlayerDTO(game.getGuest())) //
+				.build()).orElse(null);
+	}
+
 	@Override
 	@Transactional(readOnly = true)
 	public List<GameDTO> getGameList() {
@@ -72,10 +85,11 @@ public class GameDAOImpl implements GameDAO {
 
 	@Override
 	@Transactional(rollbackFor = Exception.class)
-	public GameDTO addGame(Player host) {
+	public GameDTO addGame(Player host, GameInputDTO gameInputDto) {
 		var game = new Game();
 		game.setCreationDate(Instant.now());
 		game.setName("%s's game".formatted(host.getUserName()));
+		game.setJoinCode(gameInputDto.getJoinCode());
 		game.setHost(host);
 
 		return Optional.of(gameRepository.save(game)).map(this::toGameDTO).orElseThrow();
@@ -87,7 +101,7 @@ public class GameDAOImpl implements GameDAO {
 
 	@Override
 	@Transactional(rollbackFor = Exception.class)
-	public GameDTO joinGame(Player guest, Long gameId) {
+	public GameExtendedDTO joinGame(Player guest, Long gameId) {
 		var game = loadGame(gameId)
 				.orElseThrow(() -> new NotFoundException("Game %d does not exist".formatted(gameId)));
 		if (game.getHost().equals(guest)) {
@@ -96,7 +110,7 @@ public class GameDAOImpl implements GameDAO {
 
 		game.setGuest(guest);
 
-		return Optional.ofNullable(gameRepository.save(game)).map(this::toGameDTO) //
+		return Optional.ofNullable(gameRepository.save(game)).map(this::toGameExtendedDTO) //
 				.orElseThrow(() -> new MatchmakingValidationException("Error saving game"));
 	}
 

@@ -8,13 +8,17 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pdrosoft.matchmaking.dto.GameDTO;
+import com.pdrosoft.matchmaking.dto.GameExtendedDTO;
+import com.pdrosoft.matchmaking.dto.GameInputDTO;
 import com.pdrosoft.matchmaking.security.payload.MatchmakingUserDetails;
 import com.pdrosoft.matchmaking.service.MatchmakingService;
 
+import jakarta.validation.Valid;
 import lombok.NonNull;
 
 @RestController
@@ -34,12 +38,12 @@ public class GameApiController {
 	}
 
 	@PutMapping(path = "/game", produces = { "application/json" })
-	public GameDTO addGame(@AuthenticationPrincipal MatchmakingUserDetails userDetails) {
-		return matchmakingService.addGame(userDetails.getPlayer());
+	public GameDTO addGame(@AuthenticationPrincipal MatchmakingUserDetails userDetails, @Valid @RequestBody GameInputDTO gameInputDto) {
+		return matchmakingService.addGame(userDetails.getPlayer(), gameInputDto);
 	}
 	
 	@PostMapping(path = "/game/{gameId:[0-9]+}/join", produces = { "application/json" })
-	public GameDTO joinGame(@AuthenticationPrincipal MatchmakingUserDetails userDetails, @PathVariable("gameId") Long gameId) {
+	public GameExtendedDTO joinGame(@AuthenticationPrincipal MatchmakingUserDetails userDetails, @PathVariable("gameId") Long gameId) {
 		return matchmakingService.joinGame(userDetails.getPlayer(), gameId);
 	}
 

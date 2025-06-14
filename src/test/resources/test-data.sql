@@ -5,10 +5,10 @@ INSERT INTO player(id, username, password) VALUES
 (3, 'testuser3', '$2a$10$Hv0G6KNRtt7EO.pnPNxdr.kpxoaDEH4JJxeeH1P9pSKlylI4HhN1e') -- password3
 ;
 
-INSERT INTO game(id, name, creation_date, host, guest) VALUES
-(1, 'testuser1s game', '2020-05-01T00:00:00Z', 1, NULL),
-(2, 'testuser2s game', '2020-05-01T01:00:00Z', 2, NULL),
-(3, 'testuser3s game', '2020-05-01T02:00:00Z', 3, NULL),
-(4, 'testuser1s game', '2020-05-01T03:00:00Z', 1, 2),
-(5, 'testuser2s game', '2020-05-01T04:00:00Z', 2, 3)
+INSERT INTO game(id, name, creation_date, join_code, host, guest) VALUES
+(1, 'testuser1s game', '2020-05-01T00:00:00Z', 'code1', 1, NULL),
+(2, 'testuser2s game', '2020-05-01T01:00:00Z', 'code2', 2, NULL),
+(3, 'testuser3s game', '2020-05-01T02:00:00Z', 'code3', 3, NULL),
+(4, 'testuser1s game', '2020-05-01T03:00:00Z', 'code4', 1, 2),
+(5, 'testuser2s game', '2020-05-01T04:00:00Z', 'code5', 2, 3)
 ;

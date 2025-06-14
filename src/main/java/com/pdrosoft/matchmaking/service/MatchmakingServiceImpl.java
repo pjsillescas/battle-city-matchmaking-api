@@ -11,6 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.pdrosoft.matchmaking.dao.GameDAO;
 import com.pdrosoft.matchmaking.dao.PlayerDAO;
 import com.pdrosoft.matchmaking.dto.GameDTO;
+import com.pdrosoft.matchmaking.dto.GameExtendedDTO;
+import com.pdrosoft.matchmaking.dto.GameInputDTO;
 import com.pdrosoft.matchmaking.dto.PlayerDTO;
 import com.pdrosoft.matchmaking.exception.PlayerExistsException;
 import com.pdrosoft.matchmaking.model.Player;
@@ -67,13 +69,13 @@ public class MatchmakingServiceImpl implements MatchmakingService {
 
 	@Override
 	@Transactional(rollbackFor = Exception.class)
-	public GameDTO addGame(Player host) {
-		return gameDao.addGame(host);
+	public GameDTO addGame(Player host, GameInputDTO gameInputDto) {
+		return gameDao.addGame(host, gameInputDto);
 	}
 
 	@Override
 	@Transactional(rollbackFor = Exception.class)
-	public GameDTO joinGame(Player guest, Long gameId) {
+	public GameExtendedDTO joinGame(Player guest, Long gameId) {
 		return gameDao.joinGame(guest, gameId);
 	}
 
