@@ -1,5 +1,6 @@
 package com.pdrosoft.matchmaking.dao;
 
+import java.time.Instant;
 import java.util.List;
 
 import com.pdrosoft.matchmaking.dto.GameDTO;
@@ -10,7 +11,7 @@ import com.pdrosoft.matchmaking.model.Player;
 public interface GameDAO {
 	void createGameWithCreator(Player host, String gameName);
 
-	List<GameDTO> getGameList();
+	List<GameDTO> getGameList(Instant dateFrom);
 
 	GameDTO addGame(Player host, GameInputDTO gameInputDto);
 

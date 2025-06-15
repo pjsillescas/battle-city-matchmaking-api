@@ -1,6 +1,9 @@
 package com.pdrosoft.matchmaking.controller;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -10,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pdrosoft.matchmaking.dto.GameDTO;
@@ -33,22 +37,27 @@ public class GameApiController {
 	}
 
 	@GetMapping(path = "/game", produces = { "application/json" })
-	public List<GameDTO> getGames() {
-		return matchmakingService.getGameList();
+	public List<GameDTO> getGames(@RequestParam(name = "date_from", required = false) String dateFromStr) {
+		var dateFrom = Optional.ofNullable(dateFromStr).map(Instant::parse) //
+				.orElse(Instant.now().minus(Duration.ofMinutes(10)));
+		return matchmakingService.getGameList(dateFrom);
 	}
 
 	@PutMapping(path = "/game", produces = { "application/json" })
-	public GameDTO addGame(@AuthenticationPrincipal MatchmakingUserDetails userDetails, @Valid @RequestBody GameInputDTO gameInputDto) {
+	public GameDTO addGame(@AuthenticationPrincipal MatchmakingUserDetails userDetails,
+			@Valid @RequestBody GameInputDTO gameInputDto) {
 		return matchmakingService.addGame(userDetails.getPlayer(), gameInputDto);
 	}
-	
+
 	@PostMapping(path = "/game/{gameId:[0-9]+}/join", produces = { "application/json" })
-	public GameExtendedDTO joinGame(@AuthenticationPrincipal MatchmakingUserDetails userDetails, @PathVariable("gameId") Long gameId) {
+	public GameExtendedDTO joinGame(@AuthenticationPrincipal MatchmakingUserDetails userDetails,
+			@PathVariable("gameId") Long gameId) {
 		return matchmakingService.joinGame(userDetails.getPlayer(), gameId);
 	}
 
 	@PostMapping(path = "/game/{gameId:[0-9]+}/leave", produces = { "application/json" })
-	public GameDTO leaveGame(@AuthenticationPrincipal MatchmakingUserDetails userDetails, @PathVariable("gameId") Long gameId) {
+	public GameDTO leaveGame(@AuthenticationPrincipal MatchmakingUserDetails userDetails,
+			@PathVariable("gameId") Long gameId) {
 		return matchmakingService.leaveGame(userDetails.getPlayer(), gameId);
 	}
 }

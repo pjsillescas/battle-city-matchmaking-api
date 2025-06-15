@@ -1,5 +1,6 @@
 package com.pdrosoft.matchmaking.service;
 
+import java.time.Instant;
 import java.util.List;
 
 import com.pdrosoft.matchmaking.dto.GameDTO;
@@ -10,7 +11,7 @@ import com.pdrosoft.matchmaking.model.Player;
 
 public interface MatchmakingService {
 
-	List<GameDTO> getGameList();
+	List<GameDTO> getGameList(Instant dateFrom);
 
 	PlayerDTO addPlayer(String name, String password);
 

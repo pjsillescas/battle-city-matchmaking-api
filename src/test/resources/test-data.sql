@@ -6,9 +6,9 @@ INSERT INTO player(id, username, password) VALUES
 ;
 
 INSERT INTO game(id, name, creation_date, join_code, host, guest) VALUES
-(1, 'testuser1s game', '2020-05-01T00:00:00Z', 'code1', 1, NULL),
-(2, 'testuser2s game', '2020-05-01T01:00:00Z', 'code2', 2, NULL),
-(3, 'testuser3s game', '2020-05-01T02:00:00Z', 'code3', 3, NULL),
-(4, 'testuser1s game', '2020-05-01T03:00:00Z', 'code4', 1, 2),
-(5, 'testuser2s game', '2020-05-01T04:00:00Z', 'code5', 2, 3)
+(1, 'testuser1s game', '2020-05-01T00:01:00Z', 'code1', 1, NULL),
+(2, 'testuser2s game', '2020-05-01T00:02:00Z', 'code2', 2, NULL),
+(3, 'testuser3s game', '2020-04-29T00:03:00Z', 'code3', 3, NULL),
+(4, 'testuser1s game', '2020-05-01T20:04:00Z', 'code4', 1, 2),
+(5, 'testuser2s game', '2020-05-01T00:05:00Z', 'code5', 2, 3)
 ;

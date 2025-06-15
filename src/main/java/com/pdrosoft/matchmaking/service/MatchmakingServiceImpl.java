@@ -1,5 +1,6 @@
 package com.pdrosoft.matchmaking.service;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,8 +43,8 @@ public class MatchmakingServiceImpl implements MatchmakingService {
 
 	@Override
 	@Transactional(readOnly = true)
-	public List<GameDTO> getGameList() {
-		return gameDao.getGameList();
+	public List<GameDTO> getGameList(Instant dateFrom) {
+		return gameDao.getGameList(dateFrom);
 	}
 
 	private PlayerDTO toPlayerDTO(Player player) {

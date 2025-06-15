@@ -73,19 +73,16 @@ public class GameControllerTest {
 	@Test
 	void testGameListSuccess() throws Exception {
 		var token = getToken("testuser1", "password1");
-
-		var result = mockMvc.perform(get("/api/game").header("Authorization", "Bearer %s".formatted(token)))//
+		var result = mockMvc.perform(get("/api/game").param("date_from", "2020-05-01T00:00:00Z") //
+				.header("Authorization", "Bearer %s".formatted(token)))//
 				.andExpect(status().isOk()).andReturn();
 
 		List<GameDTO> gameList = getObjectMapper().readValue(result.getResponse().getContentAsString(),
 				new TypeReference<List<GameDTO>>() {
 				});
-		assertThat(gameList).hasSize(5);
-		assertThat(gameList.get(0).getId()).isEqualTo(1);
-		assertThat(gameList.get(1).getId()).isEqualTo(2);
-		assertThat(gameList.get(2).getId()).isEqualTo(3);
-		assertThat(gameList.get(3).getId()).isEqualTo(4);
-		assertThat(gameList.get(4).getId()).isEqualTo(5);
+		assertThat(gameList).hasSize(2);
+		assertThat(gameList.get(0).getId()).isEqualTo(2);
+		assertThat(gameList.get(1).getId()).isEqualTo(1);
 	}
 
 	@Test
